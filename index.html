@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.27/dist/vue.global.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vuex@4.1.0/dist/vuex.global.min.js"></script>
+
+  </head>
+
+ 
+
+  <body>
+
+    <div id="app">
+
+      <list-manager></list-manager>
+
+    </div>
+
+ 
+
+    <script>
+
+      // Ensure Vue and Vuex are correctly referenced
+
+      const { createApp } = Vue;
+
+      const { createStore } = Vuex;
+
+ 
+
+      // Create a new store instance.
+
+      const store = createStore({
+
+        state() {
+
+          return {
+
+            listA: [],
+
+            listB: [],
+
+          };
+
+        },
+
+        mutations: {
+
+          addItem(state, { item, list }) {
+
+            state[list].push(item);
+
+          },
+
+          moveItem(state, { item, fromList, toList }) {
+
+            const index = state[fromList].indexOf(item);
+
+            if (index !== -1) {
+
+              state[fromList].splice(index, 1);
+
+              state[toList].push(item);
+
+            }
+
+          },
+
+        },
+
+        actions: {
+
+          addItem({ commit }, payload) {
+
+            commit("addItem", payload);
+
+          },
+
+          moveItem({ commit }, payload) {
+
+            commit("moveItem", payload);
+
+          },
+
+        },
+
+      });
+
+ 
+
+      // Define a new component called list-manager
+
+      const ListManager = {
+
+        template: `
+
+        <div class="list-container">
+
+          <div>
+
+            <h2>List 1</h2>
+
+            <input v-model="newItemA" @keyup.enter="addItem('listA')" placeholder="Add to List A" />
+
+            <button @click="addItem('listA')">Add</button>
+
+            <ul>
+
+              <li v-for="(item, index) in listA" :key="index">
+
+                {{ item }}
+
+                <button @click="moveItem(item, 'listA', 'listB')">Move to B ></button>
+
+              </li>
+
+            </ul>
+
+          </div>
+
+          <div>
+
+            <h2>List 2</h2>
+
+            <input v-model="newItemB" @keyup.enter="addItem('listB')" placeholder="Add to List B" />
+
+            <button @click="addItem('listB')">Add</button>
+
+            <ul>
+
+              <li v-for="(item, index) in listB" :key="index">
+
+                {{ item }}
+
+                <button @click="moveItem(item, 'listB', 'listA')">< Move to A</button>
+
+              </li>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+      `,
+
+        data() {
+
+          return {
+
+            newItemA: "",
+
+            newItemB: "",
+
+          };
+
+        },
+
+        computed: {
+
+          listA() {
+
+            return this.$store.state.listA;
+
+          },
+
+          listB() {
+
+            return this.$store.state.listB;
+
+          },
+
+        },
+
+        methods: {
+
+          addItem(list) {
+
+            const item = list === "listA" ? this.newItemA : this.newItemB;
+
+            if (item) {
+
+              this.$store.dispatch("addItem", { item, list });
+
+              if (list === "listA") {
+
+                this.newItemA = "";
+
+              } else {
+
+                this.newItemB = "";
+
+              }
+
+            }
+
+          },
+
+          moveItem(item, fromList, toList) {
+
+            this.$store.dispatch("moveItem", { item, fromList, toList });
+
+          },
+
+        },
+
+      };
+
+ 
+
+      // Create a Vue application and use the store
+
+      createApp({
+
+        components: {
+
+          ListManager,
+
+        },
+
+      })
+
+        .use(store)
+
+        .mount("#app");
+
+    </script>
+
+  </body>
+
+</html>
